@@ -27,6 +27,7 @@ import sys
 import time
 import unicodedata
 import zipfile
+import socket
 from configparser import ConfigParser
 from sqlite3 import dbapi2 as sqlite
 
@@ -642,7 +643,7 @@ def main():
     logging.basicConfig(level=logging.INFO, format="[%(asctime)s]:%(levelname)s:%(name)s:%(message)s")
     import ankisyncd
     logger.info("ankisyncd {} ({})".format(ankisyncd._get_version(), ankisyncd._homepage))
-    from wsgiref.simple_server import make_server, WSGIRequestHandler
+    from wsgiref.simple_server import make_server, WSGIRequestHandler, WSGIServer
     from ankisyncd.thread import shutdown
     import ankisyncd.config
 
@@ -660,6 +661,11 @@ def main():
         config = ankisyncd.config.load(sys.argv[1])
     else:
         config = ankisyncd.config.load()
+
+    server_cls = WSGIServer
+    if ':' in config['host']: # Fix wsgiref for IPv6 addresses.
+        class server_cls(WSGIServer):
+            address_family = socket.AF_INET6
 
     ankiserver = SyncApp(config)
     httpd = make_server(config['host'], int(config['port']), ankiserver, handler_class=RequestHandler)
