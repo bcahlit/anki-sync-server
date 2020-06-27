@@ -668,7 +668,7 @@ def main():
             address_family = socket.AF_INET6
 
     ankiserver = SyncApp(config)
-    httpd = make_server(config['host'], int(config['port']), ankiserver, handler_class=RequestHandler)
+    httpd = make_server(config['host'], int(config['port']), ankiserver, server_cls, handler_class=RequestHandler)
 
     try:
         logger.info("Serving HTTP on {} port {}...".format(*httpd.server_address))
